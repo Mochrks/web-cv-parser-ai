@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write .",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@dqbd/tiktoken": "^1.0.17",
@@ -15,29 +17,42 @@
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "cv-project": "file:",
     "dotenv": "^16.4.5",
     "dotenv-expand": "^11.0.6",
-    "framer-motion": "^11.13.1",
-    "lucide-react": "^0.454.0",
-    "next": "15.0.2",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.344.0",
+    "next": "14.2.5",
     "openai": "^4.72.0",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^4.7.76",
-    "react": "19.0.0-rc-02c0e824-20241028",
-    "react-dom": "19.0.0-rc-02c0e824-20241028",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@types/node": "^20.17.4",
     "@types/pdf-parse": "^1.1.4",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
-    "eslint-config-next": "15.0.2",
+    "eslint-config-next": "14.2.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "postcss": "^8",
+    "prettier": "^3.7.4",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,css,scss,md}": [
+      "prettier --write"
+    ]
   }
 }
