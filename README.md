@@ -6,7 +6,7 @@
 
 ### Project Overview
 
-This project is a web application built with Next.js that allows users to upload CV files in PDF format, parse them, and convert the content into structured JSON using OpenAI's language model. It streamlines the process of extracting relevant information from CVs for easier data management and analysis.
+This project is a web application built with Next.js that allows users to upload CV files in PDF format, parse them, and convert the content into structured JSON using OpenAI's language model. It streamlines the process of extracting relevant information from CVs for easier data management and analysist.
 
 ### Tech Stack & Dependencies
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=next.js&logoColor=white)
