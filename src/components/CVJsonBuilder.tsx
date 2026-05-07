@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Code2,
   FileJson,
   Copy,
   Check,
@@ -15,9 +14,15 @@ import {
   Loader2,
   X,
   ClipboardList,
+  Sparkles,
+  Cpu,
+  FileText,
+  Zap,
+  ArrowRight,
+  Star,
+  Braces,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "./ui/button";
 import { DEFAULT_TEMPLATE_1, DEFAULT_TEMPLATE_2 } from "@/utils/constants";
 
 export default function CVJsonBuilder() {
@@ -26,8 +31,6 @@ export default function CVJsonBuilder() {
   const [isCopied, setIsCopied] = useState(false);
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
   const [error, setError] = useState<string | null>(null);
-
-  // New states for upload and scanning
   const [isUploading, setIsUploading] = useState(false);
   const [scannedText, setScannedText] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -42,20 +45,14 @@ export default function CVJsonBuilder() {
 
   const handleAutoFill = async () => {
     if (!scannedText) return;
-
     setIsGenerating(true);
     setError(null);
-
     try {
       const response = await fetch("/api/generate-gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: scannedText,
-          customStructure: jsonContent,
-        }),
+        body: JSON.stringify({ text: scannedText, customStructure: jsonContent }),
       });
-
       if (response.ok) {
         const result = await response.json();
         setJsonContent(JSON.stringify(result, null, 2));
@@ -74,7 +71,6 @@ export default function CVJsonBuilder() {
   const handleJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setJsonContent(value);
-
     try {
       JSON.parse(value);
       setError(null);
@@ -106,36 +102,28 @@ export default function CVJsonBuilder() {
       const parsed = JSON.parse(jsonContent);
       setJsonContent(JSON.stringify(parsed, null, 2));
       setError(null);
-    } catch (err: any) {
+    } catch {
       setError("Cannot format: Invalid JSON");
     }
   };
 
-  // File Upload Handlers
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
+    else if (e.type === "dragleave") setDragActive(false);
   };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
     const files = e.dataTransfer.files;
-    if (files && files[0]) {
-      await processFile(files[0]);
-    }
+    if (files && files[0]) await processFile(files[0]);
   };
 
   const processFile = async (file: File) => {
     const fileType = file.name.split(".").pop()?.toLowerCase();
-
     if (fileType === "json") {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -144,7 +132,7 @@ export default function CVJsonBuilder() {
           const parsed = JSON.parse(content);
           setJsonContent(JSON.stringify(parsed, null, 2));
           setError(null);
-        } catch (err) {
+        } catch {
           setError("Failed to parse uploaded JSON file");
         }
       };
@@ -160,7 +148,6 @@ export default function CVJsonBuilder() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ fileContent: base64Content }),
           });
-
           if (response.ok) {
             const { text } = await response.json();
             setScannedText(text);
@@ -169,7 +156,7 @@ export default function CVJsonBuilder() {
           }
         };
         reader.readAsDataURL(file);
-      } catch (err) {
+      } catch {
         setError("Error uploading PDF");
       } finally {
         setIsUploading(false);
@@ -179,44 +166,100 @@ export default function CVJsonBuilder() {
     }
   };
 
+  const lineCount = jsonContent.split("\n").length;
+
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-200 p-4 md:p-8 font-sans">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="mb-12 text-center">
+    <div className="min-h-screen text-[#F5F7FA] font-sans">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 py-10 md:py-16">
+        {/* ══════════════════════════════════════
+            HERO — Bold Editorial Style
+           ══════════════════════════════════════ */}
+        <header className="mb-20 relative">
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center justify-center p-2 mb-4 rounded-2xl bg-blue-500/10 border border-blue-500/20"
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Code2 className="w-6 h-6 text-blue-400 mr-2" />
-            <span className="text-blue-400 font-semibold tracking-wide uppercase text-xs">
-              CV JSON Customizer
-            </span>
+            {/* Top Nav Row */}
+            <div className="flex items-center justify-between mb-12">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#A6F23A] flex items-center justify-center">
+                  <Braces className="w-5 h-5 text-[#07111F]" strokeWidth={3} />
+                </div>
+                <span className="text-xl font-extrabold tracking-tight">CV Parser</span>
+              </div>
+              <div className="hidden md:flex items-center gap-6"></div>
+            </div>
+
+            {/* Hero Title — Oversized & Bold */}
+            <div className="max-w-4xl">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] mb-8">
+                Transform
+                <br />
+                CVs Into{" "}
+                <span className="relative inline-block">
+                  <span className="highlight-marker text-white">JSON</span>
+                </span>
+                <br />
+                <span className="text-[#A6F23A]/60">Instantly.</span>
+              </h1>
+
+              <p className="text-[#f5f7fa]/75 text-lg md:text-xl max-w-xl leading-relaxed mb-10">
+                Our AI engine reads, extracts, and structures every detail from your resume into
+                production-ready JSON format.
+              </p>
+            </div>
+
+            {/* Stats Row — Sparkz Style */}
+            <div className="flex flex-wrap gap-12 items-end">
+              {[
+                { val: "< 60s", label: "Processing Time", icon: Zap },
+                { val: "2", label: "JSON Templates", icon: FileText },
+                { val: "AI", label: "Gemini Engine", icon: Cpu },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.1 }}
+                  className="flex flex-col"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <stat.icon className="w-4 h-4 text-[#A6F23A]" />
+                    <span className="text-3xl md:text-4xl font-black text-[#f5f7fa] tracking-tight">
+                      {stat.val}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-[#A8B3C7]/70 uppercase tracking-[0.15em] font-semibold">
+                    {stat.label}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
-            Build Your{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-              CV Structure
-            </span>
-          </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-            Upload a file (PDF/JSON) to start. PDF text will be shown as a reference for your JSON.
-          </p>
         </header>
 
-        {/* Upload Zone */}
-        <div className="mb-10 space-y-6">
+        {/* ══════════════════════════════════════
+            UPLOAD DROPZONE
+           ══════════════════════════════════════ */}
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-16"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <Star className="w-5 h-5 text-[#A6F23A]" fill="#A6F23A" />
+            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Upload Your CV</h2>
+          </div>
+
           <div
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`relative group cursor-pointer border-2 border-dashed rounded-2xl p-8 text-center transition-all
-                            ${dragActive ? "border-blue-500 bg-blue-500/10 shadow-[0_0_30px_rgba(59,130,246,0.1)]" : "border-slate-700 bg-slate-800/30 hover:border-slate-500 hover:bg-slate-800/50"}
-                            ${isUploading ? "opacity-50 cursor-not-allowed" : ""}
-                        `}
+            className={`dropzone p-12 md:p-16 text-center group ${dragActive ? "active" : ""} ${isUploading ? "opacity-50 pointer-events-none" : ""}`}
           >
             <input
               ref={fileInputRef}
@@ -225,210 +268,253 @@ export default function CVJsonBuilder() {
               onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])}
               className="hidden"
             />
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center gap-5">
               {isUploading ? (
-                <Loader2 className="w-10 h-10 text-blue-400 animate-spin mb-3" />
+                <div className="w-20 h-20 rounded-3xl bg-[#A6F23A]/10 flex items-center justify-center">
+                  <Loader2 className="w-10 h-10 text-[#A6F23A] animate-spin" />
+                </div>
               ) : (
-                <UploadCloud className="w-10 h-10 text-slate-500 group-hover:text-blue-400 transition-colors mb-3" />
+                <div className="w-20 h-20 rounded-3xl bg-[#A6F23A]/[0.07] border border-[#A6F23A]/10 flex items-center justify-center group-hover:bg-[#A6F23A] group-hover:border-[#A6F23A] transition-all duration-500 group-hover:scale-110">
+                  <UploadCloud className="w-10 h-10 text-[#A6F23A]/50 group-hover:text-[#07111F] transition-colors duration-300" />
+                </div>
               )}
-              <p className="text-lg font-medium text-slate-300 group-hover:text-white transition-colors">
-                {isUploading
-                  ? "Reading file content..."
-                  : "Click or drop your CV (PDF) or JSON here"}
-              </p>
-              <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">
-                JSON will populate the editor instantly. PDF will extract text to help you fill the
-                fields manually.
-              </p>
+
+              <div>
+                <p className="text-xl md:text-2xl font-bold text-[#F5F7FA] mb-2 group-hover:text-[#A6F23A] transition-colors duration-300">
+                  {isUploading ? "Scanning document..." : "Drop your file or click to browse"}
+                </p>
+                <p className="text-sm text-[#A8B3C7]/50 max-w-md mx-auto">
+                  AI will extract and map all fields automatically from your PDF or JSON
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 mt-2">
+                {[".pdf", ".json"].map((ext) => (
+                  <span
+                    key={ext}
+                    className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#122033] border border-white/[0.06] text-[#A8B3C7]/60 uppercase tracking-wider"
+                  >
+                    {ext}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
+        </motion.section>
 
-          {/* Reference Text Display (Now below upload) */}
-          <AnimatePresence>
-            {scannedText && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="bg-slate-800/50 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-6 shadow-xl relative"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-semibold text-blue-400 uppercase tracking-wider flex items-center">
-                    <ClipboardList className="w-4 h-4 mr-2" /> Scanned Text Reference
-                  </h3>
+        {/* ══════════════════════════════════════
+            SCANNED TEXT REFERENCE
+           ══════════════════════════════════════ */}
+        <AnimatePresence>
+          {scannedText && (
+            <motion.section
+              initial={{ opacity: 0, y: 30, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.97 }}
+              className="glass-panel p-8 md:p-10 mb-16 border-[#A6F23A]/10"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-extrabold text-[#A6F23A] uppercase tracking-[0.2em] flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4" /> Extracted Text
+                </h3>
+                <button
+                  onClick={() => setScannedText(null)}
+                  className="p-2.5 rounded-xl hover:bg-white/[0.06] text-[#A8B3C7]/40 hover:text-white transition-all"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="lg:col-span-3">
+                  <div className="scan-effect max-h-[300px] overflow-y-auto text-[11px] text-[#A8B3C7]/70 font-mono leading-relaxed custom-scrollbar p-6 bg-[#07111F]/60 rounded-2xl border border-white/[0.04] whitespace-pre-wrap">
+                    {scannedText}
+                  </div>
+                </div>
+                <div className="flex flex-col justify-center gap-4">
                   <button
-                    onClick={() => setScannedText(null)}
-                    className="p-1.5 hover:bg-slate-700 rounded-lg text-slate-500 hover:text-white transition-all shadow-inner"
+                    onClick={handleAutoFill}
+                    disabled={isGenerating}
+                    className="btn-neon w-full py-6 flex flex-col items-center gap-3"
                   >
-                    <X className="w-4 h-4" />
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-7 h-7 animate-spin" />
+                        <span className="text-sm font-extrabold">Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-7 h-7" />
+                        <span className="text-lg font-black">Auto-Fill</span>
+                        <span className="text-[10px] opacity-60 uppercase tracking-[0.2em] font-bold">
+                          Gemini Engine
+                        </span>
+                      </>
+                    )}
+                  </button>
+                  <p className="text-[10px] text-[#A8B3C7]/30 text-center italic p-3 rounded-xl bg-[#A6F23A]/[0.03] border border-[#A6F23A]/[0.06]">
+                    AI may take up to 60s for complex CVs
+                  </p>
+                </div>
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+
+        {/* ══════════════════════════════════════
+            EDITOR SECTION — Bold Section Title
+           ══════════════════════════════════════ */}
+        <section className="mb-8">
+          <div className="flex items-center gap-3 mb-8">
+            <Star className="w-5 h-5 text-[#A6F23A]" fill="#A6F23A" />
+            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">JSON Builder</h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* ── Sidebar ── */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              className="lg:col-span-3 space-y-6"
+            >
+              {/* Templates */}
+              <div className="glass-panel p-6">
+                <h3 className="text-[11px] font-extrabold text-[#A8B3C7]/50 uppercase tracking-[0.2em] mb-5 flex items-center gap-2">
+                  <Layout className="w-3.5 h-3.5 text-[#A6F23A]/50" /> Templates
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    {
+                      key: "template1" as const,
+                      name: "Alpha",
+                      desc: "Deep professional structure",
+                    },
+                    { key: "template2" as const, name: "Bravo", desc: "Skills-focused layout" },
+                  ].map((t) => (
+                    <button
+                      key={t.key}
+                      onClick={() => setActiveTemplate(t.key)}
+                      className={`template-card w-full text-left ${activeTemplate === t.key ? "active" : ""}`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-extrabold text-sm">{t.name}</span>
+                        {activeTemplate === t.key && (
+                          <div className="w-6 h-6 rounded-full bg-[#A6F23A] flex items-center justify-center">
+                            <Check className="w-3.5 h-3.5 text-[#07111F]" strokeWidth={3} />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-[#A8B3C7]/40">{t.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="glass-panel p-6">
+                <h3 className="text-[11px] font-extrabold text-[#A8B3C7]/50 uppercase tracking-[0.2em] mb-5">
+                  Actions
+                </h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={formatJson}
+                    className="btn-dark w-full flex items-center gap-3 text-left"
+                  >
+                    <RefreshCw className="w-4 h-4 text-[#A6F23A]/60" />
+                    <span>Auto-Format</span>
+                  </button>
+                  <button
+                    onClick={copyToClipboard}
+                    className="btn-dark w-full flex items-center gap-3 text-left"
+                  >
+                    {isCopied ? (
+                      <Check className="w-4 h-4 text-[#A6F23A]" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-[#A6F23A]/60" />
+                    )}
+                    <span>{isCopied ? "Copied!" : "Copy JSON"}</span>
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    className="btn-neon w-full flex items-center justify-center gap-3 py-3.5"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download .json</span>
+                    <ArrowRight className="w-4 h-4 ml-auto" />
                   </button>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                  <div className="lg:col-span-3">
-                    <div className="max-h-[300px] overflow-y-auto text-[11px] text-slate-400 font-mono leading-relaxed custom-scrollbar p-4 bg-[#020617]/50 rounded-xl border border-slate-700/50 whitespace-pre-wrap">
-                      {scannedText}
-                    </div>
-                  </div>
-                  <div className="flex flex-col justify-center space-y-4">
-                    <Button
-                      onClick={handleAutoFill}
-                      disabled={isGenerating}
-                      className="w-full h-auto min-h-[100px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white border-none shadow-lg shadow-blue-900/40 relative overflow-hidden group/btn py-6 flex flex-col items-center justify-center gap-0"
+              </div>
+
+              {/* Info Card */}
+              <div className="rounded-2xl bg-[#A6F23A] p-6 text-[#07111F]">
+                <h4 className="font-black text-lg mb-2 leading-tight">Need Help?</h4>
+                <p className="text-sm opacity-70 leading-relaxed mb-4">
+                  Upload a PDF and let our AI engine auto-fill the JSON template for you.
+                </p>
+                <div className="text-xs font-bold uppercase tracking-[0.15em] opacity-50">
+                  {lineCount} lines · {activeTemplate}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* ── Editor Panel ── */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className="lg:col-span-9 space-y-4"
+            >
+              {/* Mode Toggle + Error */}
+              <div className="flex items-center justify-between">
+                <div className="flex p-1.5 rounded-2xl bg-[#0A1628] border border-white/[0.06]">
+                  {(["edit", "preview"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      onClick={() => setViewMode(mode)}
+                      className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                        viewMode === mode
+                          ? "bg-[#A6F23A] text-[#07111F]"
+                          : "text-[#A8B3C7]/40 hover:text-[#A8B3C7]/70"
+                      }`}
                     >
-                      <div className="absolute inset-0 bg-white/10 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 pointer-events-none" />
-
-                      {isGenerating ? (
-                        <div className="flex flex-col items-center">
-                          <Loader2 className="w-6 h-6 mb-2 animate-spin text-white" />
-                          <span className="text-sm font-medium">Processing...</span>
-                        </div>
+                      {mode === "edit" ? (
+                        <Edit3 className="w-3.5 h-3.5" />
                       ) : (
-                        <div className="flex flex-col items-center w-full">
-                          <RefreshCw className="w-6 h-6 mb-2 group-hover/btn:rotate-180 transition-transform duration-500 text-blue-200" />
-                          <span className="font-bold text-lg">✨ Auto-Fill Template</span>
-                          <span className="text-[11px] text-blue-100/70 mt-1 uppercase tracking-wider font-semibold">
-                            Via Gemini AI
-                          </span>
-                        </div>
+                        <Eye className="w-3.5 h-3.5" />
                       )}
-                    </Button>
-                    <p className="text-[10px] text-slate-500 text-center italic bg-blue-500/5 p-3 rounded-lg border border-blue-500/10">
-                      AI mapping may take up to 60s for complex CVs. Please wait while it processes.
-                    </p>
-                  </div>
+                      {mode === "edit" ? "Editor" : "Preview"}
+                    </button>
+                  ))}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
 
-        {/* Controls & Editor */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left: Template & Options */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-2xl p-6 shadow-xl">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center">
-                <Layout className="w-4 h-4 mr-2" /> Templates
-              </h3>
-              <div className="space-y-3">
-                <button
-                  onClick={() => setActiveTemplate("template1")}
-                  className={`w-full text-left p-4 rounded-xl transition-all border ${
-                    activeTemplate === "template1"
-                      ? "bg-blue-600/20 border-blue-500/50 text-white shadow-[0_0_20px_rgba(37,99,235,0.15)]"
-                      : "bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:bg-slate-700/50"
-                  }`}
-                >
-                  <div className="font-bold flex items-center">
-                    Template Alpha
-                    {activeTemplate === "template1" && (
-                      <Check className="w-4 h-4 ml-auto text-blue-400" />
-                    )}
+                {error && (
+                  <div className="text-rose-400 text-[11px] font-mono bg-rose-500/10 border border-rose-500/15 px-4 py-2 rounded-full flex items-center gap-2 animate-pulse">
+                    <span className="w-2 h-2 bg-rose-500 rounded-full" />
+                    {typeof error === "string" ? error.substring(0, 50) : "Unknown Error"}
                   </div>
-                  <div className="text-xs mt-1 opacity-70">Deep professional structure</div>
-                </button>
-                <button
-                  onClick={() => setActiveTemplate("template2")}
-                  className={`w-full text-left p-4 rounded-xl transition-all border ${
-                    activeTemplate === "template2"
-                      ? "bg-cyan-600/20 border-cyan-500/50 text-white shadow-[0_0_20px_rgba(6,182,212,0.15)]"
-                      : "bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:bg-slate-700/50"
-                  }`}
-                >
-                  <div className="font-bold flex items-center">
-                    Template Bravo
-                    {activeTemplate === "template2" && (
-                      <Check className="w-4 h-4 ml-auto text-cyan-400" />
-                    )}
-                  </div>
-                  <div className="text-xs mt-1 opacity-70">Clean & skills-focused structure</div>
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-2xl p-6 shadow-xl">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
-                Quick Actions
-              </h3>
-              <div className="grid grid-cols-1 gap-3">
-                <Button
-                  onClick={formatJson}
-                  variant="outline"
-                  className="w-full justify-start border-slate-700 hover:bg-slate-700/50 text-slate-200"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" /> Auto-Format
-                </Button>
-                <Button
-                  onClick={copyToClipboard}
-                  variant="outline"
-                  className="w-full justify-start border-slate-700 hover:bg-slate-700/50 text-slate-200"
-                >
-                  {isCopied ? (
-                    <Check className="w-4 h-4 mr-2 text-green-400" />
-                  ) : (
-                    <Copy className="w-4 h-4 mr-2" />
-                  )}
-                  {isCopied ? "Copied!" : "Copy JSON"}
-                </Button>
-                <Button
-                  onClick={handleDownload}
-                  className="w-full justify-start bg-blue-600 hover:bg-blue-700 text-white border-none shadow-lg shadow-blue-900/20"
-                >
-                  <Download className="w-4 h-4 mr-2" /> Download .json
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Editor & Preview */}
-          <div className="lg:col-span-9 space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex bg-slate-800/80 p-1 rounded-lg border border-slate-700">
-                <button
-                  onClick={() => setViewMode("edit")}
-                  className={`flex items-center px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    viewMode === "edit"
-                      ? "bg-slate-700 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  <Edit3 className="w-3.5 h-3.5 mr-2" /> Editor
-                </button>
-                <button
-                  onClick={() => setViewMode("preview")}
-                  className={`flex items-center px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    viewMode === "preview"
-                      ? "bg-slate-700 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  <Eye className="w-3.5 h-3.5 mr-2" /> Preview
-                </button>
+                )}
               </div>
 
-              {error && (
-                <div className="text-rose-400 text-xs font-mono bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-full flex items-center animate-pulse">
-                  <span className="w-1.5 h-1.5 bg-rose-500 rounded-full mr-2" />
-                  Error:{" "}
-                  {typeof error === "string"
-                    ? error.substring(0, 60)
-                    : (error as any).message || "Unknown Error"}
-                </div>
-              )}
-            </div>
-
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur opacity-10 group-focus-within:opacity-20 transition duration-1000"></div>
-              <div className="relative bg-[#020617] rounded-2xl border border-slate-800 overflow-hidden min-h-[600px] flex flex-col shadow-2xl">
-                {/* Editor Tab Bar */}
-                <div className="bg-[#1e293b]/50 border-b border-slate-800 px-4 py-2 flex items-center space-x-2">
-                  <div className="flex space-x-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-rose-500/50"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/50"></div>
+              {/* Code Editor */}
+              <div className="editor-container min-h-[640px] flex flex-col">
+                <div className="editor-toolbar">
+                  <div className="editor-dots">
+                    <div className="editor-dot red" />
+                    <div className="editor-dot yellow" />
+                    <div className="editor-dot green" />
                   </div>
-                  <div className="text-[10px] text-slate-500 font-mono ml-4 tracking-widest uppercase">
-                    cv-builder-v1.json
+                  <div className="flex items-center gap-2 ml-5">
+                    <FileJson className="w-3.5 h-3.5 text-[#A6F23A]/40" />
+                    <span className="text-[11px] text-[#A8B3C7]/40 font-mono tracking-wider">
+                      cv-builder-v1.json
+                    </span>
+                  </div>
+                  <div className="ml-auto flex items-center gap-3">
+                    <span className="text-[10px] text-[#A8B3C7]/20 font-mono">
+                      {lineCount} lines
+                    </span>
+                    <div className="status-dot" />
                   </div>
                 </div>
 
@@ -439,13 +525,14 @@ export default function CVJsonBuilder() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
                       className="flex-1"
                     >
                       <textarea
                         value={jsonContent}
                         onChange={handleJsonChange}
                         spellCheck={false}
-                        className="w-full h-full min-h-[550px] bg-transparent p-6 font-mono text-sm text-blue-300 outline-none resize-none selection:bg-blue-500/30 custom-scrollbar"
+                        className="w-full h-full min-h-[580px] bg-transparent p-6 font-mono text-sm text-[#A6F23A]/80 outline-none resize-none custom-scrollbar selection:bg-[#A6F23A]/20 leading-relaxed"
                         placeholder="Paste or write your CV JSON here..."
                       />
                     </motion.div>
@@ -455,20 +542,18 @@ export default function CVJsonBuilder() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
                       className="flex-1 p-6 overflow-auto custom-scrollbar"
                     >
-                      <div className="rounded-xl bg-slate-900/50 border border-slate-800 p-8">
+                      <div className="rounded-2xl bg-[#07111F]/50 border border-white/[0.04] p-8">
                         {error ? (
                           <div className="text-center py-20">
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-rose-500/10 mb-4">
-                              <FileJson className="w-8 h-8 text-rose-500" />
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-500/10 mb-4">
+                              <FileJson className="w-8 h-8 text-rose-500/60" />
                             </div>
-                            <p className="text-rose-400 font-semibold mb-2 text-lg">
-                              Invalid JSON Structure
-                            </p>
-                            <p className="text-slate-500 text-sm max-w-xs mx-auto">
-                              Please resolve the syntax errors in the editor to view the live
-                              preview.
+                            <p className="text-rose-400 font-bold mb-2 text-lg">Invalid JSON</p>
+                            <p className="text-[#A8B3C7]/30 text-sm">
+                              Fix the syntax errors in the editor.
                             </p>
                           </div>
                         ) : (
@@ -477,18 +562,18 @@ export default function CVJsonBuilder() {
                               try {
                                 const data = JSON.parse(jsonContent);
                                 return (
-                                  <div className="space-y-4 text-slate-300">
+                                  <div className="space-y-3">
                                     {Object.entries(data).map(([key, value]) => (
                                       <div
                                         key={key}
-                                        className="border-l-2 border-slate-800 pl-4 py-1 hover:border-blue-500/50 transition-colors group/item"
+                                        className="border-l-2 border-white/[0.05] pl-4 py-2 hover:border-[#A6F23A]/50 transition-all duration-300 group/item rounded-r-lg hover:bg-white/[0.01]"
                                       >
-                                        <span className="text-blue-400 font-bold group-hover/item:text-blue-300 transition-colors">
+                                        <span className="text-[#A6F23A] font-bold">
                                           &quot;{key}&quot;
                                         </span>
                                         :{" "}
                                         {typeof value === "object" ? (
-                                          <span className="text-slate-500">
+                                          <span className="text-[#A8B3C7]/30">
                                             {Array.isArray(value)
                                               ? `[Array(${value.length})]`
                                               : "{Object}"}
@@ -497,16 +582,16 @@ export default function CVJsonBuilder() {
                                           <span
                                             className={
                                               typeof value === "string"
-                                                ? "text-emerald-400"
-                                                : "text-amber-400"
+                                                ? "text-[#6EDC3D]"
+                                                : "text-amber-400/70"
                                             }
                                           >
                                             {JSON.stringify(value)}
                                           </span>
                                         )}
                                         {typeof value === "object" && value !== null && (
-                                          <div className="mt-2 ml-4">
-                                            <pre className="text-[11px] text-slate-400 bg-slate-800/20 p-4 rounded-xl border border-slate-800/50 group-hover/item:bg-slate-800/40 transition-colors whitespace-pre-wrap break-all">
+                                          <div className="mt-3 ml-4">
+                                            <pre className="text-[11px] text-[#A8B3C7]/40 bg-[#07111F]/40 p-4 rounded-xl border border-white/[0.03] whitespace-pre-wrap break-all">
                                               {JSON.stringify(value, null, 2)}
                                             </pre>
                                           </div>
@@ -517,8 +602,8 @@ export default function CVJsonBuilder() {
                                 );
                               } catch {
                                 return (
-                                  <div className="text-slate-500 animate-pulse">
-                                    Rendering preview...
+                                  <div className="text-[#A8B3C7]/20 animate-pulse">
+                                    Rendering...
                                   </div>
                                 );
                               }
@@ -530,9 +615,9 @@ export default function CVJsonBuilder() {
                   )}
                 </AnimatePresence>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
